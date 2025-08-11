@@ -290,10 +290,8 @@ for ( let loopIndex = 0; loopIndex < 3; loopIndex++ ) {
         // Take 1 editor + 3 responsive frontend screenshots per configuration
         await expect.soft( editorWidget ).toHaveScreenshot( `widget-config-${ loopIndex + 1 }-editor.png` );
         
-        await editor.publishPage();
-        await editor.viewPublishedPage();
-        
-        // Desktop
+        await editor.publishAndViewPage();
+
         await expect.soft( frontendWidget ).toHaveScreenshot( `widget-config-${ loopIndex + 1 }-desktop-frontend.png` );
         
         // Tablet
@@ -370,6 +368,21 @@ await expect.soft( widget ).toHaveScreenshot( 'filename.png' );
 - **Responsive testing**: Include desktop, tablet, and mobile for all frontend screenshots
 - Use `expect.soft()` to continue testing even if screenshots fail
 
+
+```typescript
+test.beforeEach( async ( { browser, apiRequests }, testInfo ) => {
+    context = await browser.newContext();
+    page = await context.newPage();
+    wpAdmin = new WpAdminPage( page, testInfo, apiRequests );
+    editor = await wpAdmin.openNewPage();
+    await editor.closeNavigatorIfOpen();
+} );
+
+test.afterEach( async () => {
+    await context.close();
+} );
+```
+
 ## 🚀 Frontend Testing Rules
 
 ### 1. **Editor vs Frontend Comparison**
@@ -384,13 +397,11 @@ await editor.setSliderControlValue( 'revealed_control', '100' );
 await expect.soft( editorWidget ).toHaveScreenshot( 'widget-configured-editor.png' );
 
 // Publish and view frontend
-await editor.publishPage();
-await editor.viewPublishedPage();
+await editor.publishAndViewPage();
 
 const frontendWidget = page.locator( '.widget-css-class' );
 await expect( frontendWidget ).toBeVisible();
 
-// Responsive frontend screenshots
 await expect.soft( frontendWidget ).toHaveScreenshot( 'widget-configured-desktop-frontend.png' );
 
 await page.setViewportSize( viewportSize.tablet );
@@ -406,7 +417,6 @@ All frontend screenshots should include responsive testing by default:
 ```typescript
 import { viewportSize } from '../../../../enums/viewport-sizes';
 
-// Always test all three breakpoints for frontend screenshots
 const frontendWidget = page.locator( '.widget-css-class' );
 
 // Desktop (default viewport)
@@ -495,8 +505,7 @@ if ( isVisible ) {
 }
 
 // Good: Frontend navigation with helper function
-await editor.publishPage();
-await editor.viewPublishedPage();
+await editor.publishAndViewPage();
 
 // Bad: With comments and logs
 try {
@@ -520,7 +529,7 @@ editor.getControlValueByIndex( controlValues: any[], loopIndex: number ): any
 editor.setBackgroundColorControlValue( backgroundControlId: string, colorControlId: string, colorValue: string ): Promise<void>
 
 // Frontend navigation
-editor.viewPublishedPage(): Promise<void>
+editor.publishAndViewPage(): Promise<void>
 ```
 
 **Usage Examples:**
@@ -533,8 +542,7 @@ await editor.setChooseControlValue( 'direction', editor.getControlValueByIndex( 
 await editor.setBackgroundColorControlValue( 'background_background', 'background_color', '#FF5722' );
 
 // Navigate to published page
-await editor.publishPage();
-await editor.viewPublishedPage();
+await editor.publishAndViewPage();
 ```
 
 ## 🎯 Control Discovery Checklist
@@ -655,13 +663,11 @@ test( 'WIDGET_NAME widget can be added to the page', async () => {
 	await expect( widget ).toBeVisible();
 	await expect.soft( widget ).toHaveScreenshot( 'widget-default-editor.png' );
 	
-	await editor.publishPage();
-	await editor.viewPublishedPage();
+	await editor.publishAndViewPage();
 	
 	const frontendWidget = page.locator( WIDGET_CSS_CLASS );
 	await expect( frontendWidget ).toBeVisible();
-	
-	// Default widget responsive screenshots
+
 	await expect.soft( frontendWidget ).toHaveScreenshot( 'widget-default-desktop-frontend.png' );
 	
 	await page.setViewportSize( viewportSize.tablet );
@@ -708,13 +714,11 @@ for ( let loopIndex = 0; loopIndex < 3; loopIndex++ ) {
         
         await expect.soft( editorWidget ).toHaveScreenshot( `widget-config-${ loopIndex + 1 }-editor.png` );
         
-        await editor.publishPage();
-        await editor.viewPublishedPage();
+        await editor.publishAndViewPage();
         
         const frontendWidget = page.locator( WIDGET_CSS_CLASS );
         await expect( frontendWidget ).toBeVisible();
-        
-        // Responsive frontend screenshots
+
         await expect.soft( frontendWidget ).toHaveScreenshot( `widget-config-${ loopIndex + 1 }-desktop-frontend.png` );
         
         await page.setViewportSize( viewportSize.tablet );
@@ -767,7 +771,7 @@ test.skip( 'WIDGET_NAME individual control variations - OPTIONAL', async () => {
    - Included in randomized tests by default
    - Test editor vs frontend for each configuration
    - Add responsive testing if needed
-   - Use `editor.viewPublishedPage()` for navigation
+   - Use `editor.publishAndViewPage()` for navigation
 
 5. **Cleanup Phase**
    - Remove all comments and logs
