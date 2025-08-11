@@ -5,6 +5,11 @@ This guide provides systematic rules for creating comprehensive Playwright tests
 
 **Default Approach**: Use randomized configuration tests with 3 test variations plus a default widget test (16 total screenshots) for efficient, comprehensive coverage including responsive testing. Individual control testing is optional and should be skipped by default using `test.skip()`.
 
+### Helper functions first
+- Before writing or expanding tests, ensure required helper functions exist in `tests/playwright/pages/editor-page.ts` and are adequate.
+- Prefer adding a new, narrowly scoped helper over modifying an existing one.
+- Only update existing helpers when strictly necessary. Provide a clear reason (e.g., DOM changed, selector is flaky) and reference a failing test or recorded step.
+
 ## 🎯 Core Testing Philosophy
 
 ### 1. **Discover Before Testing**
@@ -13,6 +18,14 @@ This guide provides systematic rules for creating comprehensive Playwright tests
 - Record actual values, icon classes, and control types before writing tests
 - **Test conditional controls** - many controls are hidden until parent switches are enabled
 - Delete investigation tests after gathering required information
+
+### Use the Playwright recorder for selectors
+- Run tests headed and pause where discovery is needed: insert `await page.pause()` or launch with the debug UI.
+- Use the recorder to click through the Elementor UI and copy robust selectors (`getByRole`, `getByText`, `locator().filter({ hasText })`).
+- Prefer stable, semantic, built-in Playwright selectors, such as `getByRole`, `getByText`, `getByLabel` etc, over brittle CSS paths. For example, in the Icons Manager:
+  - `await page.locator('div').filter({ hasText: /^Address book$/ }).first().click();`
+  - `await page.getByRole('button', { name: 'Insert' }).click();`
+  - Use `await page.locator('div').filter({ hasText: /^Address book$/ }).first().waitFor();` before clicking when needed.
 
 ### 2. **Test ALL Controls, Including Conditional Ones**
 - Many controls are hidden inside collapsible sections AND behind conditional logic
@@ -242,6 +255,11 @@ for ( const value of sliderValues ) {
 ```
 
 #### Switcher Controls
+### Helper change policy
+- Avoid modifying helpers unless there is a verified need (broken due to DOM change, persistent flakiness, or missing capability).
+- When a change is needed, first attempt to add a new helper method with a narrow purpose to avoid regressions.
+- Validate changes using a headed run and, where applicable, by recording the interaction with the Playwright recorder to confirm selectors.
+
 ```typescript
 const switcherControls = [ 'control_1', 'control_2' ];
 for ( const controlName of switcherControls ) {
