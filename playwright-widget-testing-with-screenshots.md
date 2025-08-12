@@ -365,6 +365,11 @@ test.skip( 'Widget individual control variations - OPTIONAL', async () => {
 - **Mobile frontend screenshots**: `widget-config-{1-3}-mobile-frontend.png`
 - **Default widget screenshot**: `widget-default-editor.png`
 
+#### **RTL Frontend Screenshots (Default Test Only)**
+- **Desktop RTL frontend screenshots**: `widget-default-frontend-rtl.png`
+- **Tablet RTL frontend screenshots**: `widget-default-frontend-rtl-tablet.png`
+- **Mobile RTL frontend screenshots**: `widget-default-frontend-rtl-mobile.png`
+
 #### **Individual Control Screenshots (Optional)**
 - **Control variations**: `widget-control-value-editor.png`
 - **Conditional controls**: `widget-conditional-state-editor.png`
@@ -385,6 +390,29 @@ await expect.soft( widget ).toHaveScreenshot( 'filename.png' );
 - **Capture conditional states** progressively across randomized tests
 - **Responsive testing**: Include desktop, tablet, and mobile for all frontend screenshots
 - Use `expect.soft()` to continue testing even if screenshots fail
+
+### 5. **RTL Testing Policy (Frontend Only)**
+
+- Do not create standalone RTL editor tests.
+- Change site language to an RTL language only before taking frontend screenshots in the default test.
+- Keep the editor LTR for stability; verify RTL rendering on frontend at desktop, tablet, and mobile.
+- Restore the site language to default after RTL screenshots.
+
+```typescript
+// After LTR frontend screenshots in the default test
+await wpAdmin.setSiteLanguage( 'he_IL' );
+await page.reload();
+
+await expect.soft( frontendWidget ).toHaveScreenshot( 'widget-default-frontend-rtl.png' );
+
+await page.setViewportSize( viewportSize.tablet );
+await expect.soft( frontendWidget ).toHaveScreenshot( 'widget-default-frontend-rtl-tablet.png' );
+
+await page.setViewportSize( viewportSize.mobile );
+await expect.soft( frontendWidget ).toHaveScreenshot( 'widget-default-frontend-rtl-mobile.png' );
+
+await wpAdmin.setSiteLanguage( '' );
+```
 
 
 ```typescript
@@ -427,6 +455,20 @@ await expect.soft( frontendWidget ).toHaveScreenshot( 'widget-configured-tablet-
 
 await page.setViewportSize( viewportSize.mobile );
 await expect.soft( frontendWidget ).toHaveScreenshot( 'widget-configured-mobile-frontend.png' );
+
+// RTL frontend screenshots (no RTL editor screenshots)
+await wpAdmin.setSiteLanguage( 'he_IL' );
+await page.reload();
+
+await expect.soft( frontendWidget ).toHaveScreenshot( 'widget-configured-frontend-rtl.png' );
+
+await page.setViewportSize( viewportSize.tablet );
+await expect.soft( frontendWidget ).toHaveScreenshot( 'widget-configured-frontend-rtl-tablet.png' );
+
+await page.setViewportSize( viewportSize.mobile );
+await expect.soft( frontendWidget ).toHaveScreenshot( 'widget-configured-frontend-rtl-mobile.png' );
+
+await wpAdmin.setSiteLanguage( '' );
 ```
 
 ### 2. **Responsive Testing**
@@ -548,6 +590,9 @@ editor.setBackgroundColorControlValue( backgroundControlId: string, colorControl
 
 // Frontend navigation
 editor.publishAndViewPage(): Promise<void>
+
+// Site language switching for RTL/LTR scenarios
+wpAdmin.setSiteLanguage( language: string, userLanguage?: string ): Promise<void>
 ```
 
 **Usage Examples:**
@@ -561,6 +606,11 @@ await editor.setBackgroundColorControlValue( 'background_background', 'backgroun
 
 // Navigate to published page
 await editor.publishAndViewPage();
+
+// Switch to RTL for frontend screenshots
+await wpAdmin.setSiteLanguage( 'he_IL' );
+await page.reload();
+await wpAdmin.setSiteLanguage( '' );
 ```
 
 ## 🎯 Control Discovery Checklist
@@ -693,6 +743,20 @@ test( 'WIDGET_NAME widget can be added to the page', async () => {
 	
 	await page.setViewportSize( viewportSize.mobile );
 	await expect.soft( frontendWidget ).toHaveScreenshot( 'widget-default-mobile-frontend.png' );
+
+	// RTL frontend screenshots (frontend only)
+	await wpAdmin.setSiteLanguage( 'he_IL' );
+	await page.reload();
+
+	await expect.soft( frontendWidget ).toHaveScreenshot( 'widget-default-frontend-rtl.png' );
+
+	await page.setViewportSize( viewportSize.tablet );
+	await expect.soft( frontendWidget ).toHaveScreenshot( 'widget-default-frontend-rtl-tablet.png' );
+
+	await page.setViewportSize( viewportSize.mobile );
+	await expect.soft( frontendWidget ).toHaveScreenshot( 'widget-default-frontend-rtl-mobile.png' );
+
+	await wpAdmin.setSiteLanguage( '' );
 } );
 
 // DEFAULT: Randomized configuration tests (3 tests, 6 screenshots total)
@@ -776,7 +840,7 @@ test.skip( 'WIDGET_NAME individual control variations - OPTIONAL', async () => {
    - **Implement 3 randomized configuration tests**
    - Use `editor.getControlValueByIndex()` for value cycling
    - Test conditional controls progressively (loopIndex >= 1, >= 2)
-   - Generate only 6 screenshots total (3 editor + 3 frontend)
+    - Generate only 6 screenshots total (3 editor + 3 frontend)
    - Use descriptive `CONTROL_VALUES` constants
 
 3. **Optional Individual Control Phase**
@@ -801,12 +865,13 @@ test.skip( 'WIDGET_NAME individual control variations - OPTIONAL', async () => {
 ## 🎯 Default Approach Summary
 
 **Recommended Pattern**: 
-- 1 basic test (default state): 4 screenshots (1 editor + 3 responsive frontend)
+- 1 basic test (default state): 7 screenshots (1 editor + 3 responsive frontend + 3 RTL frontend)
 - 3 randomized configuration tests: 12 screenshots (3 editor + 9 responsive frontend)
-- **Total: 16 screenshots** instead of 50-150+ individual control screenshots
+- **Total: 19 screenshots** instead of 50-150+ individual control screenshots
 
 **Screenshot Breakdown**:
 - **Default widget**: 1 editor + 3 responsive frontend (desktop, tablet, mobile)
+- **Default widget RTL frontend**: 3 responsive frontend (desktop, tablet, mobile)
 - **Configuration 1**: 1 editor + 3 responsive frontend
 - **Configuration 2**: 1 editor + 3 responsive frontend  
 - **Configuration 3**: 1 editor + 3 responsive frontend
