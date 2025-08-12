@@ -3,7 +3,7 @@
 ## Overview
 This guide provides systematic rules for creating comprehensive Playwright tests for Elementor widgets, including advanced conditional control testing. 
 
-**Default Approach**: Use randomized configuration tests with 3 test variations plus a default widget test (16 total screenshots) for efficient, comprehensive coverage including responsive testing. Individual control testing is optional and should be skipped by default using `test.skip()`.
+**Default Approach**: Use randomized configuration tests with 3 test variations plus a default widget test (19 total screenshots) for efficient, comprehensive coverage including responsive testing and RTL on frontend. Individual control testing is optional and should be skipped by default using `test.skip()`.
 
 ### Helper functions first
 - Before writing or expanding tests, ensure required helper functions exist in `tests/playwright/pages/editor-page.ts` and are adequate.
